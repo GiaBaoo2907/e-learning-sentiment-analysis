@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+.env
+*.py[cod]
+
+# Generated or potentially large artifacts
+data/raw/*
+data/processed/*
+models/*
+reports/figures/*
+
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!models/.gitkeep
+!reports/figures/.gitkeep

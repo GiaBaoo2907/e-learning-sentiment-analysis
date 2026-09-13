@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: e-learning-sentiment-analysis
+Version: 0.1.0
+Summary: Sentiment analysis for e-learning feedback
+Requires-Python: >=3.10
