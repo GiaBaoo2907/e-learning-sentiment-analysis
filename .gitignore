@@ -4,6 +4,7 @@ __pycache__/
 .ipynb_checkpoints/
 .env
 *.py[cod]
+*.egg-info/
 
 # Generated or potentially large artifacts
 data/raw/*

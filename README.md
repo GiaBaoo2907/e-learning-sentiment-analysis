@@ -28,14 +28,18 @@
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
+
+Chạy các lệnh tiếp theo trong PowerShell tại thư mục gốc project, sau khi đã activate `.venv`.
 
 Dataset đã được chia sẵn thành ba tập trong `data/`. Mỗi dòng ở ba file `sents.txt`, `sentiments.txt` và `topics.txt` trong cùng một thư mục là một mẫu tương ứng. Nhãn cảm xúc là `0` tiêu cực, `1` trung tính và `2` tích cực; nhãn topic là `0` giảng viên, `1` chương trình đào tạo, `2` cơ sở vật chất và `3` khác.
 
-## EDA và tiền xử lý
+## Workflow Tuần 2–5
 
-Chạy pipeline từ thư mục gốc của project:
+### Tuần 2–4: EDA, tiền xử lý và TF-IDF
+
+Lệnh này đọc dataset, sinh dữ liệu đã tiền xử lý, báo cáo EDA và TF-IDF artifacts. Chạy lại khi dataset hoặc bước tiền xử lý thay đổi:
 
 ```powershell
 $env:PYTHONPATH="src"
@@ -44,9 +48,11 @@ python -m sentiment_analysis.cli
 
 Lệnh trên đọc dữ liệu từ `data/`, làm sạch văn bản tiếng Việt, tách từ bằng `underthesea`, loại stop-word có chọn lọc và tạo:
 
-- `data/processed/dataset_clean.csv`: dữ liệu có `text_clean`, `text_length` và `word_count`, sẵn sàng vector hóa.
-- `data/processed/dataset_preprocessed.csv`: dữ liệu đầy đủ với thêm `text_segmented` và `text_no_stopword`, dùng trực tiếp cho Tuần 4.
+- `data/processed/dataset_preprocessed.csv`: dữ liệu có `text_clean`, `text_segmented`, `text_no_stopword`, `text_length` và `word_count`, dùng cho vector hóa và các bước tiếp theo.
+- `data/processed/vectorized/`: ma trận TF-IDF sparse `X_{train,dev,test}.npz`, nhãn `y_{train,dev,test}.npy`, vectorizer đã lưu và metadata. TF-IDF chỉ fit trên train; dev/test chỉ được transform.
 - `reports/eda_report.md`: báo cáo số mẫu, tỷ lệ nhãn và độ dài văn bản.
+
+Trong `vectorized/`, `X_train/dev/test.npz` là ma trận đặc trưng và `y_train/dev/test.npy` là nhãn tương ứng. Vectorizer chỉ được fit trên train; dev/test chỉ transform.
 
 Các từ phủ định như `không`, `chưa` và `chẳng` được giữ lại khi loại stop-word để không làm mất tín hiệu cảm xúc.
 
@@ -58,6 +64,27 @@ Sau pipeline, có thể dùng các notebook theo thứ tự:
 2. `02_preprocessing.ipynb`: làm sạch, chuẩn hóa và chia tập dữ liệu.
 3. `03_baseline_model.ipynb`: xây dựng mô hình baseline.
 4. `04_evaluation.ipynb`: đánh giá, trực quan hóa và phân tích lỗi.
+
+TF-IDF Tuần 4 dùng unigram + bigram từ cột `text_segmented`. Tập đặc trưng này có thể dùng chung cho baseline SVM và Naive Bayes ở Tuần 5.
+
+### Tuần 5: Naive Bayes baseline
+
+Sau khi đã tạo TF-IDF artifacts, huấn luyện Multinomial Naive Bayes với `alpha=1.0` và đánh giá trên `dev`. Lệnh này không chạy lại preprocessing và không sử dụng test:
+
+```powershell
+$env:PYTHONPATH="src"
+python -m sentiment_analysis.cli --task train-naive-bayes
+```
+
+Model được lưu trong `models/naive_bayes_tfidf.joblib`; metric dev và confusion matrix trong `reports/naive_bayes_dev.md`. Baseline hiện đạt Accuracy **0,8863**, Macro-F1 **0,6046**; lớp neutral có F1 **0,0000**, cần đối chiếu với SVM. Tập test chưa được dùng.
+
+### Kiểm thử
+
+```powershell
+python -m pytest -q
+```
+
+Nếu gặp lỗi không tìm thấy module `sentiment_analysis`, hãy đặt `$env:PYTHONPATH="src"` trong terminal hiện tại trước khi chạy lệnh CLI.
 
 ## Phân chia gợi ý cho nhóm hai người
 
