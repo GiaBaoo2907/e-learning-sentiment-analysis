@@ -5,7 +5,7 @@ import pandas as pd
 from sentiment_analysis.data import load_dataset
 from sentiment_analysis.eda import summarize
 from sentiment_analysis.evaluation import evaluate_predictions
-from sentiment_analysis.model import train_naive_bayes_from_artifacts
+from sentiment_analysis.model import train_naive_bayes_from_artifacts, train_svm_from_artifacts
 from sentiment_analysis.preprocessing import clean_text, preprocess_dataset, remove_stopwords, segment_text
 from sentiment_analysis.vectorization import vectorize_splits
 
@@ -97,6 +97,35 @@ def test_naive_bayes_trains_on_train_and_reports_dev(tmp_path: Path) -> None:
     metrics = evaluate_predictions(y_dev, predictions)
 
     assert model.alpha == 1.0
+    assert model_path.is_file()
+    assert feature_count == 2
+    assert predictions.tolist() == y_dev.tolist()
+    assert metrics["accuracy"] == 1.0
+
+
+def test_svm_trains_on_train_and_reports_dev(tmp_path: Path) -> None:
+    from scipy import sparse
+    import numpy as np
+
+    vectorized_dir = tmp_path / "vectorized"
+    vectorized_dir.mkdir()
+    sparse.save_npz(
+        vectorized_dir / "X_train.npz",
+        sparse.csr_matrix([[1.0, 0.0], [0.0, 1.0], [0.8, 0.1], [0.1, 0.8]]),
+    )
+    np.save(vectorized_dir / "y_train.npy", np.array([0, 1, 0, 1]), allow_pickle=False)
+    sparse.save_npz(vectorized_dir / "X_dev.npz", sparse.csr_matrix([[0.9, 0.1], [0.1, 0.9]]))
+    np.save(vectorized_dir / "y_dev.npy", np.array([0, 1]), allow_pickle=False)
+    model_path = tmp_path / "models" / "svm.joblib"
+
+    model, y_dev, predictions, feature_count = train_svm_from_artifacts(
+        vectorized_dir,
+        model_path,
+    )
+    metrics = evaluate_predictions(y_dev, predictions)
+
+    assert model.C == 1.0
+    assert model.class_weight == "balanced"
     assert model_path.is_file()
     assert feature_count == 2
     assert predictions.tolist() == y_dev.tolist()

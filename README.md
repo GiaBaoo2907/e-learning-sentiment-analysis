@@ -78,6 +78,27 @@ python -m sentiment_analysis.cli --task train-naive-bayes
 
 Model được lưu trong `models/naive_bayes_tfidf.joblib`; metric dev và confusion matrix trong `reports/naive_bayes_dev.md`. Baseline hiện đạt Accuracy **0,8863**, Macro-F1 **0,6046**; lớp neutral có F1 **0,0000**, cần đối chiếu với SVM. Tập test chưa được dùng.
 
+### Tuần 5: Linear SVM
+
+LinearSVC tìm siêu phẳng phân tách các lớp với biên lớn nhất trên vector TF-IDF. Tham số `C` điều chỉnh mức phạt lỗi so với độ rộng biên: `C` lớn ưu tiên fit dữ liệu train hơn, còn `C` nhỏ regularize mạnh hơn. Vì lớp neutral chỉ chiếm tỷ lệ nhỏ, cấu hình baseline dùng `class_weight="balanced"`; chỉ train được dùng để tính trọng số lớp.
+
+Huấn luyện baseline và đánh giá trên dev:
+
+```powershell
+$env:PYTHONPATH="src"
+python -m sentiment_analysis.cli --task train-svm
+```
+
+Mặc định dùng `C=1.0`, lưu model ở `models/svm_tfidf.joblib` và báo cáo ở `reports/svm_dev.md`. Trên dev hiện tại, cấu hình này đạt Accuracy **0,9078**, Macro-F1 **0,7703**, neutral F1 **0,4559**; so với Naive Bayes, Macro-F1 tăng từ **0,6046** và neutral F1 từ **0,0000**. Đây là kết quả dev, chưa phải kết quả test. Thử các giá trị `C` bằng cách chạy riêng từng thí nghiệm, ví dụ:
+
+```powershell
+python -m sentiment_analysis.cli --task train-svm --c 0.1
+python -m sentiment_analysis.cli --task train-svm --c 1.0
+python -m sentiment_analysis.cli --task train-svm --c 10
+```
+
+Mỗi lần chạy ghi đè model và báo cáo mặc định; hãy ghi lại `C`, class weight, dev Macro-F1 và F1 từng lớp trước khi chọn cấu hình. Chọn theo Macro-F1 cùng khả năng nhận diện lớp neutral, không theo accuracy đơn lẻ. Sau khi lựa chọn, so sánh báo cáo SVM với [Naive Bayes](docs/naive_bayes.md); chỉ mở test cho đánh giá cuối cùng. Chi tiết câu hỏi nghiên cứu, lý thuyết và workflow được trình bày trong [tài liệu SVM](docs/svm.md).
+
 ### Kiểm thử
 
 ```powershell

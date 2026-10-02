@@ -33,14 +33,26 @@ def write_evaluation_report(
 	metrics: dict[str, Any],
 	output_path: str | Path,
 	model_name: str,
-	alpha: float,
 	split: str,
 	samples: int,
 	features: int,
+	alpha: float | None = None,
+	c: float | None = None,
+	class_weight: str | None = None,
 ) -> None:
 	"""Write a reproducible Markdown evaluation report."""
 	per_class = metrics["per_class"]
 	confusion = metrics["confusion_matrix"]
+	configuration = []
+	if alpha is not None:
+		configuration.append(f"| Smoothing alpha | {alpha:g} |")
+	if c is not None:
+		configuration.extend(
+			[
+				f"| Regularization parameter C | {c:g} |",
+				f"| Class weight | {class_weight or 'None'} |",
+			]
+		)
 	report = [
 		f"# {model_name} evaluation ({split})",
 		"",
@@ -49,7 +61,7 @@ def write_evaluation_report(
 		"| Item | Value |",
 		"|---|---|",
 		f"| Estimator | {model_name} |",
-		f"| Smoothing alpha | {alpha:g} |",
+		*configuration,
 		"| Input features | Existing train-fitted TF-IDF, word uni/bi-grams |",
 		"| Training split | train |",
 		f"| Evaluation split | {split} |",
@@ -93,9 +105,18 @@ def write_evaluation_report(
 			"",
 			"## Interpretation notes",
 			"",
-			"- Multinomial Naive Bayes is a probabilistic baseline with conditional feature independence.",
-			"- Alpha smoothing prevents zero likelihoods for features unseen in a class.",
-			"- TF-IDF values are nonnegative but fractional; treat this as a practical baseline, not literal token counts.",
+			*(
+				[
+					"- LinearSVC learns a linear maximum-margin decision boundary; C controls the trade-off between margin size and training errors.",
+					"- Class weighting adjusts the penalty for mistakes in each class; balanced weights are computed from training labels.",
+				]
+				if c is not None
+				else [
+					"- Multinomial Naive Bayes is a probabilistic baseline with conditional feature independence.",
+					"- Alpha smoothing prevents zero likelihoods for features unseen in a class.",
+					"- TF-IDF values are nonnegative but fractional; treat this as a practical baseline, not literal token counts.",
+				]
+			),
 			"- Dev results support model comparison only; reserve test for final evaluation after model selection.",
 		]
 	)
