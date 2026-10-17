@@ -18,6 +18,7 @@ def vectorize_splits(
 	text_column: str = "text_segmented",
 	min_df: int = 2,
 	max_features: int = 50_000,
+	ngram_range: tuple[int, int] = (1, 2),
 ) -> tuple[TfidfVectorizer, dict[str, sparse.csr_matrix], dict[str, np.ndarray]]:
 	"""Fit TF-IDF on train only, then transform dev and test without refitting."""
 	required = {text_column, "sentiment", "split"}
@@ -32,7 +33,7 @@ def vectorize_splits(
 		raise ValueError(f"Column {text_column!r} contains missing text")
 
 	vectorizer = TfidfVectorizer(
-		ngram_range=(1, 2),
+		ngram_range=ngram_range,
 		min_df=min_df,
 		max_df=0.95,
 		max_features=max_features,
@@ -61,6 +62,7 @@ def save_vectorized_artifacts(
 	x_by_split: dict[str, sparse.csr_matrix],
 	y_by_split: dict[str, np.ndarray],
 	output_dir: str | Path,
+	text_column: str = "text_segmented",
 ) -> None:
 	"""Save sparse feature matrices, labels, vectorizer, and run metadata."""
 	destination = Path(output_dir)
@@ -84,10 +86,10 @@ def save_vectorized_artifacts(
 		}
 
 	metadata = {
-		"text_column": "text_segmented",
+		"text_column": text_column,
 		"vectorizer": "TfidfVectorizer",
 		"parameters": {
-			"ngram_range": [1, 2],
+			"ngram_range": list(vectorizer.ngram_range),
 			"min_df": vectorizer.min_df,
 			"max_df": vectorizer.max_df,
 			"max_features": vectorizer.max_features,

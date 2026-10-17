@@ -35,7 +35,7 @@ Chạy các lệnh tiếp theo trong PowerShell tại thư mục gốc project, 
 
 Dataset đã được chia sẵn thành ba tập trong `data/`. Mỗi dòng ở ba file `sents.txt`, `sentiments.txt` và `topics.txt` trong cùng một thư mục là một mẫu tương ứng. Nhãn cảm xúc là `0` tiêu cực, `1` trung tính và `2` tích cực; nhãn topic là `0` giảng viên, `1` chương trình đào tạo, `2` cơ sở vật chất và `3` khác.
 
-## Workflow Tuần 2–5
+## Workflow Tuần 2–8
 
 ### Tuần 2–4: EDA, tiền xử lý và TF-IDF
 
@@ -98,6 +98,41 @@ python -m sentiment_analysis.cli --task train-svm --c 10
 ```
 
 Mỗi lần chạy ghi đè model và báo cáo mặc định; hãy ghi lại `C`, class weight, dev Macro-F1 và F1 từng lớp trước khi chọn cấu hình. Chọn theo Macro-F1 cùng khả năng nhận diện lớp neutral, không theo accuracy đơn lẻ. Sau khi lựa chọn, so sánh báo cáo SVM với [Naive Bayes](docs/naive_bayes.md); chỉ mở test cho đánh giá cuối cùng. Chi tiết câu hỏi nghiên cứu, lý thuyết và workflow được trình bày trong [tài liệu SVM](docs/svm.md).
+
+### Tuần 6: Logistic Regression
+
+Logistic Regression học điểm tuyến tính cho từng lớp rồi dùng softmax để ước lượng xác suất negative/neutral/positive. `C` là nghịch đảo độ mạnh regularization; `C` nhỏ regularize mạnh hơn. Baseline dùng `solver="lbfgs"`, `C=1.0` và `class_weight="balanced"` để cân nhắc lớp neutral.
+
+Chạy baseline trên cùng TF-IDF train/dev với NB và SVM:
+
+```powershell
+$env:PYTHONPATH="src"
+python -m sentiment_analysis.cli --task train-logistic-regression
+```
+
+Model lưu ở `models/logistic_regression_tfidf.joblib`, báo cáo dev ở `reports/logistic_regression_dev.md`. Kết quả hiện tại: Accuracy **0,8907**, Macro-F1 **0,7573**, neutral recall **0,5616**, neutral F1 **0,4339**. LR có neutral recall cao hơn SVM baseline nhưng Macro-F1 và neutral F1 thấp hơn; đây là kết quả dev, chưa phải đánh giá cuối.
+
+Tuning `C` và class weight trên dev cho thấy cấu hình LR `C=10`, balanced đạt Macro-F1 0,7647. So sánh preprocessing cho thấy TF-IDF unigram + bigram từ `text_segmented` tốt hơn rõ với SVM/LR so với bỏ stop-word hoặc chỉ unigram. Kết quả tuning, preprocessing và giới hạn thí nghiệm được ghi trong [báo cáo thực nghiệm model và preprocessing](reports/model_preprocessing_experiments.md); lý thuyết và workflow LR nằm trong [tài liệu Logistic Regression](docs/logistic_regression.md). Test vẫn chưa được dùng.
+
+Tạo biểu đồ so sánh F1 từng lớp, Macro-F1, Accuracy và confusion matrix chuẩn hóa theo hàng:
+
+```powershell
+$env:PYTHONPATH="src"
+python -m sentiment_analysis.cli --task compare-models
+```
+
+Ảnh được lưu tại `reports/figures/model_comparison_dev.png` và `reports/figures/confusion_matrices_dev.png`. Lệnh dùng ba model candidate và dev artifacts; test không được tải.
+
+### Tuần 8: Error Analysis
+
+Phân tích dự đoán sai trên dev cho ba model candidate, gồm confusion matrix, lỗi theo topic và ví dụ theo các hướng nhầm lẫn phổ biến. Chạy báo cáo cho SVM candidate:
+
+```powershell
+$env:PYTHONPATH="src"
+python -m sentiment_analysis.cli --task analyze-errors --model-path models/experiments/linear_svm_c_1_balanced.joblib --model-report reports/error_analysis_svm_dev.md
+```
+
+Lệnh ghi Markdown report và CSV tất cả lỗi dev để nhóm gán nguyên nhân thủ công. Không tự động xem ví dụ là nguyên nhân; cần đọc câu và topic, gán codebook nhất quán, rồi chỉ đề xuất thay đổi nếu nguyên nhân lặp lại. Chi tiết cách đọc metric, phân loại nguyên nhân và ranh giới với test nằm trong [hướng dẫn Error Analysis](docs/error_analysis.md). Test vẫn chưa được dùng.
 
 ### Kiểm thử
 

@@ -39,6 +39,8 @@ def write_evaluation_report(
 	alpha: float | None = None,
 	c: float | None = None,
 	class_weight: str | None = None,
+	solver: str | None = None,
+	text_column: str = "unknown",
 ) -> None:
 	"""Write a reproducible Markdown evaluation report."""
 	per_class = metrics["per_class"]
@@ -53,6 +55,8 @@ def write_evaluation_report(
 				f"| Class weight | {class_weight or 'None'} |",
 			]
 		)
+	if solver is not None:
+		configuration.append(f"| Solver | {solver} |")
 	report = [
 		f"# {model_name} evaluation ({split})",
 		"",
@@ -61,6 +65,7 @@ def write_evaluation_report(
 		"| Item | Value |",
 		"|---|---|",
 		f"| Estimator | {model_name} |",
+		f"| Text column | {text_column} |",
 		*configuration,
 		"| Input features | Existing train-fitted TF-IDF, word uni/bi-grams |",
 		"| Training split | train |",
@@ -107,6 +112,11 @@ def write_evaluation_report(
 			"",
 			*(
 				[
+					"- Logistic Regression estimates class probabilities with a softmax over linear class scores.",
+					"- C controls inverse regularization strength; class weights can increase the penalty for errors on minority classes.",
+				]
+				if solver is not None
+				else [
 					"- LinearSVC learns a linear maximum-margin decision boundary; C controls the trade-off between margin size and training errors.",
 					"- Class weighting adjusts the penalty for mistakes in each class; balanced weights are computed from training labels.",
 				]
