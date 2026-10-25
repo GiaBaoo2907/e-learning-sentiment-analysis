@@ -9,10 +9,10 @@ __pycache__/
 # Generated or potentially large artifacts
 data/raw/*
 data/processed/*
-models/*
-reports/figures/*
+data/models/*
+app/ml/reports/figures/*
 
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-!models/.gitkeep
-!reports/figures/.gitkeep
+!data/models/.gitkeep
+!app/ml/reports/figures/.gitkeep

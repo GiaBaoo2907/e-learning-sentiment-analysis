@@ -19,19 +19,19 @@ The current Week 4 representation is nonnegative TF-IDF, so it is accepted by Mu
 1. Load `X_train.npz` and `y_train.npy`; fit MultinomialNB with `alpha=1.0`.
 2. Load `X_dev.npz` and `y_dev.npy`; calculate accuracy, macro-F1, per-class precision/recall/F1, and confusion matrix.
 3. Do not load or evaluate test during baseline development. Reserve it until the model and configuration are selected.
-4. Save the estimator under ignored `models/` and save the experiment report under `reports/`.
+4. Save the estimator under ignored `data/models/` and save the experiment report under `app/ml/reports/`.
 
 ## Reproduce
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --task train-naive-bayes
 ```
 
 Optional alpha experiment on dev:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --task train-naive-bayes --alpha 0.5
 ```
 
@@ -42,8 +42,8 @@ Each run overwrites the default model/report. Record each tested alpha and dev m
 | Item | Status | Result/artifact |
 |---|---|---|
 | Week 4 TF-IDF train/dev/test matrices | Complete | `data/processed/vectorized/` |
-| MultinomialNB baseline, alpha=1.0 | Complete | `models/naive_bayes_tfidf.joblib` |
-| Dev metrics and confusion matrix | Complete | Accuracy 0.8863; Macro-F1 0.6046; `reports/naive_bayes_dev.md` |
+| MultinomialNB baseline, alpha=1.0 | Complete | `data/models/naive_bayes_tfidf.joblib` |
+| Dev metrics and confusion matrix | Complete | Accuracy 0.8863; Macro-F1 0.6046; `app/ml/reports/naive_bayes_dev.md` |
 | Test evaluation | Reserved | Not used in this phase |
 
 ## Initial result interpretation

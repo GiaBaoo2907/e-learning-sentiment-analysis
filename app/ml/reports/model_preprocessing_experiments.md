@@ -6,7 +6,7 @@
 - Dùng cùng split: 11.426 train và 1.583 dev, tương ứng 73 mẫu neutral trên dev.
 - Tuning mô hình dùng TF-IDF `text_segmented`, word unigram + bigram, 12.854 đặc trưng.
 - Mỗi model/biến thể được fit riêng trên train; dev chỉ được transform.
-- Các model candidate đã lưu riêng dưới `models/experiments/`; baseline hiện có không bị ghi đè.
+- Các model candidate đã lưu riêng dưới `data/models/experiments/`; baseline hiện có không bị ghi đè.
 
 ## Tuning tham số
 
@@ -92,9 +92,9 @@ Confusion matrices chuẩn hóa theo hàng; số trong ngoặc là số mẫu:
 ## Tái lập preprocessing experiments
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --text-column text_no_stopword --processed-dir $env:TEMP\sa-no-stopword\processed --vectorized-dir $env:TEMP\sa-no-stopword\vectorized --report $env:TEMP\sa-no-stopword\eda.md
 python -m sentiment_analysis.cli --ngram-setting unigram --processed-dir $env:TEMP\sa-unigram\processed --vectorized-dir $env:TEMP\sa-unigram\vectorized --report $env:TEMP\sa-unigram\eda.md
 ```
 
-CLI mặc định vẫn giữ `text_segmented` và unigram + bigram; mỗi phép thử tạo một bộ artifacts riêng. Reports model cụ thể của các candidates nằm trong `reports/experiments/`.
+CLI mặc định vẫn giữ `text_segmented` và unigram + bigram; mỗi phép thử tạo một bộ artifacts riêng. Reports model cụ thể của các candidates nằm trong `app/ml/reports/experiments/`.

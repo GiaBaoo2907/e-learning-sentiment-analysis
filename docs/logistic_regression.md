@@ -26,16 +26,16 @@ Tham số `C` là nghịch đảo độ mạnh regularization: `C` nhỏ áp d�
 Chạy baseline:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --task train-logistic-regression
 ```
 
 Thử các cấu hình riêng. Mặc định model/report bị ghi đè, nên dùng đường dẫn riêng nếu cần lưu tất cả kết quả:
 
 ```powershell
-python -m sentiment_analysis.cli --task train-logistic-regression --c 0.1 --model-path models/lr_c_0_1.joblib --model-report reports/lr_c_0_1.md
-python -m sentiment_analysis.cli --task train-logistic-regression --c 10 --model-path models/lr_c_10.joblib --model-report reports/lr_c_10.md
-python -m sentiment_analysis.cli --task train-logistic-regression --class-weight none --model-path models/lr_unweighted.joblib --model-report reports/lr_unweighted.md
+python -m sentiment_analysis.cli --task train-logistic-regression --c 0.1 --model-path data/models/lr_c_0_1.joblib --model-report app/ml/reports/lr_c_0_1.md
+python -m sentiment_analysis.cli --task train-logistic-regression --c 10 --model-path data/models/lr_c_10.joblib --model-report app/ml/reports/lr_c_10.md
+python -m sentiment_analysis.cli --task train-logistic-regression --class-weight none --model-path data/models/lr_unweighted.joblib --model-report app/ml/reports/lr_unweighted.md
 ```
 
 Các lệnh chỉ nạp train/dev artifacts; test không được tải hoặc đánh giá.
@@ -53,4 +53,4 @@ Các lệnh chỉ nạp train/dev artifacts; test không được tải hoặc �
 
 Trên grid nhỏ này, cấu hình `C=10`, `class_weight="balanced"` có Macro-F1 và neutral F1 cao nhất trong các cấu hình Logistic Regression. Cấu hình `C=1`, balanced có neutral recall cao nhất; lựa chọn cuối cần dựa trên mục tiêu metric đã xác định trước. Bỏ class weighting tăng accuracy nhưng làm Macro-F1 và nhận diện neutral giảm rõ rệt.
 
-Các phép thử preprocessing cùng tham số đã chọn đạt Macro-F1 0.7647 với `text_segmented` uni+bi-gram, 0.7318 với `text_no_stopword` uni+bi-gram và 0.7379 với `text_segmented` unigram. Giữ `text_segmented` uni+bi-gram làm representation hiện tại. Chưa có kết luận test; kết quả đầy đủ của ba model nằm trong `reports/week6_7_experiments.md`.
+Các phép thử preprocessing cùng tham số đã chọn đạt Macro-F1 0.7647 với `text_segmented` uni+bi-gram, 0.7318 với `text_no_stopword` uni+bi-gram và 0.7379 với `text_segmented` unigram. Giữ `text_segmented` uni+bi-gram làm representation hiện tại. Chưa có kết luận test; kết quả đầy đủ của ba model nằm trong `app/ml/reports/week6_7_experiments.md`.

@@ -5,6 +5,7 @@
 | Item | Value |
 |---|---|
 | Estimator | Linear Support Vector Classifier (LinearSVC) |
+| Text column | text_segmented |
 | Regularization parameter C | 1 |
 | Class weight | balanced |
 | Input features | Existing train-fitted TF-IDF, word uni/bi-grams |

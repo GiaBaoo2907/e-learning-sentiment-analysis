@@ -48,22 +48,22 @@ def build_parser() -> argparse.ArgumentParser:
         default="unigram-bigram",
         help="TF-IDF n-gram range for preprocessing experiments.",
     )
-    parser.add_argument("--report", type=Path, default=Path("reports/eda_report.md"))
+    parser.add_argument("--report", type=Path, default=Path("app/ml/reports/eda_report.md"))
     parser.add_argument("--model-path", type=Path)
     parser.add_argument("--model-report", type=Path)
     parser.add_argument("--alpha", type=float, default=1.0)
     parser.add_argument("--c", type=float, default=1.0)
     parser.add_argument("--class-weight", choices=("balanced", "none"), default="balanced")
     parser.add_argument("--error-examples-per-confusion", type=int, default=3)
-    parser.add_argument("--chart-dir", type=Path, default=Path("reports/figures"))
+    parser.add_argument("--chart-dir", type=Path, default=Path("app/ml/reports/figures"))
     return parser
 
 
 def main() -> None:
     args = build_parser().parse_args()
     if args.task == "analyze-errors":
-        model_path = args.model_path or Path("models/experiments/linear_svm_c_1_balanced.joblib")
-        report_path = args.model_report or Path("reports/error_analysis_dev.md")
+        model_path = args.model_path or Path("data/models/experiments/linear_svm_c_1_balanced.joblib")
+        report_path = args.model_report or Path("app/ml/reports/error_analysis_dev.md")
         results = analyze_dev_errors(
             model_path,
             args.vectorized_dir,
@@ -83,9 +83,9 @@ def main() -> None:
 
     if args.task == "compare-models":
         model_paths = {
-            "Naive Bayes": Path("models/experiments/naive_bayes_alpha_0_1.joblib"),
-            "LinearSVC": Path("models/experiments/linear_svm_c_1_balanced.joblib"),
-            "Logistic Regression": Path("models/experiments/logistic_regression_c_10_balanced.joblib"),
+            "Naive Bayes": Path("data/models/experiments/naive_bayes_alpha_0_1.joblib"),
+            "LinearSVC": Path("data/models/experiments/linear_svm_c_1_balanced.joblib"),
+            "Logistic Regression": Path("data/models/experiments/logistic_regression_c_10_balanced.joblib"),
         }
         metric_path, confusion_path = plot_model_comparison(
             model_paths,
@@ -101,18 +101,18 @@ def main() -> None:
         is_svm = args.task == "train-svm"
         is_logistic_regression = args.task == "train-logistic-regression"
         model_path = args.model_path or Path(
-            "models/svm_tfidf.joblib"
+            "data/models/svm_tfidf.joblib"
             if is_svm
-            else "models/logistic_regression_tfidf.joblib"
+            else "data/models/logistic_regression_tfidf.joblib"
             if is_logistic_regression
-            else "models/naive_bayes_tfidf.joblib"
+            else "data/models/naive_bayes_tfidf.joblib"
         )
         model_report = args.model_report or Path(
-            "reports/svm_dev.md"
+            "app/ml/reports/svm_dev.md"
             if is_svm
-            else "reports/logistic_regression_dev.md"
+            else "app/ml/reports/logistic_regression_dev.md"
             if is_logistic_regression
-            else "reports/naive_bayes_dev.md"
+            else "app/ml/reports/naive_bayes_dev.md"
         )
         if is_svm:
             model, y_dev, predictions, features = train_svm_from_artifacts(

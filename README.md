@@ -6,20 +6,16 @@
 
 ```text
 .
-├── configs/                  # Cấu hình dữ liệu và mô hình
-├── data/
-│   ├── train/                # Dữ liệu gốc: câu, nhãn cảm xúc, topic
-│   ├── dev/                  # Tập phát triển
-│   ├── test/                 # Tập kiểm tra
-│   └── processed/            # Dữ liệu sau tiền xử lý
-├── docs/                     # Tài liệu, phân công, quyết định kỹ thuật
-├── models/                   # Model và tokenizer đã huấn luyện
-├── notebooks/                # EDA, thử nghiệm và phân tích kết quả
-├── reports/                  # Báo cáo EDA và hình minh họa
-├── src/sentiment_analysis/   # Mã nguồn chính
-├── tests/                    # Kiểm thử
-├── .env.example              # Biến môi trường mẫu
-└── requirements.txt          # Thư viện Python
+├── app/
+│   ├── fe/                    # Giao diện web
+│   ├── be/                    # FastAPI, API và truy cập CSDL
+│   └── ml/                    # Mã ML, cấu hình, notebook và báo cáo
+├── data/                      # Dataset, dữ liệu xử lý, model và SQL
+├── docs/                      # Tài liệu thiết kế và thuật toán
+├── tests/                     # Kiểm thử
+├── .env.example
+├── pyproject.toml
+└── requirements.txt
 ```
 
 ## Bắt đầu
@@ -42,7 +38,7 @@ Dataset đã được chia sẵn thành ba tập trong `data/`. Mỗi dòng ở 
 Lệnh này đọc dataset, sinh dữ liệu đã tiền xử lý, báo cáo EDA và TF-IDF artifacts. Chạy lại khi dataset hoặc bước tiền xử lý thay đổi:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli
 ```
 
@@ -50,7 +46,7 @@ Lệnh trên đọc dữ liệu từ `data/`, làm sạch văn bản tiếng Vi�
 
 - `data/processed/dataset_preprocessed.csv`: dữ liệu có `text_clean`, `text_segmented`, `text_no_stopword`, `text_length` và `word_count`, dùng cho vector hóa và các bước tiếp theo.
 - `data/processed/vectorized/`: ma trận TF-IDF sparse `X_{train,dev,test}.npz`, nhãn `y_{train,dev,test}.npy`, vectorizer đã lưu và metadata. TF-IDF chỉ fit trên train; dev/test chỉ được transform.
-- `reports/eda_report.md`: báo cáo số mẫu, tỷ lệ nhãn và độ dài văn bản.
+- `app/ml/reports/eda_report.md`: báo cáo số mẫu, tỷ lệ nhãn và độ dài văn bản.
 
 Trong `vectorized/`, `X_train/dev/test.npz` là ma trận đặc trưng và `y_train/dev/test.npy` là nhãn tương ứng. Vectorizer chỉ được fit trên train; dev/test chỉ transform.
 
@@ -72,11 +68,11 @@ TF-IDF Tuần 4 dùng unigram + bigram từ cột `text_segmented`. Tập đặc
 Sau khi đã tạo TF-IDF artifacts, huấn luyện Multinomial Naive Bayes với `alpha=1.0` và đánh giá trên `dev`. Lệnh này không chạy lại preprocessing và không sử dụng test:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --task train-naive-bayes
 ```
 
-Model được lưu trong `models/naive_bayes_tfidf.joblib`; metric dev và confusion matrix trong `reports/naive_bayes_dev.md`. Baseline hiện đạt Accuracy **0,8863**, Macro-F1 **0,6046**; lớp neutral có F1 **0,0000**, cần đối chiếu với SVM. Tập test chưa được dùng.
+Model được lưu trong `data/models/naive_bayes_tfidf.joblib`; metric dev và confusion matrix trong `app/ml/reports/naive_bayes_dev.md`. Baseline hiện đạt Accuracy **0,8863**, Macro-F1 **0,6046**; lớp neutral có F1 **0,0000**, cần đối chiếu với SVM. Tập test chưa được dùng.
 
 ### Tuần 5: Linear SVM
 
@@ -85,11 +81,11 @@ LinearSVC tìm siêu phẳng phân tách các lớp với biên lớn nhất tr�
 Huấn luyện baseline và đánh giá trên dev:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --task train-svm
 ```
 
-Mặc định dùng `C=1.0`, lưu model ở `models/svm_tfidf.joblib` và báo cáo ở `reports/svm_dev.md`. Trên dev hiện tại, cấu hình này đạt Accuracy **0,9078**, Macro-F1 **0,7703**, neutral F1 **0,4559**; so với Naive Bayes, Macro-F1 tăng từ **0,6046** và neutral F1 từ **0,0000**. Đây là kết quả dev, chưa phải kết quả test. Thử các giá trị `C` bằng cách chạy riêng từng thí nghiệm, ví dụ:
+Mặc định dùng `C=1.0`, lưu model ở `data/models/svm_tfidf.joblib` và báo cáo ở `app/ml/reports/svm_dev.md`. Trên dev hiện tại, cấu hình này đạt Accuracy **0,9078**, Macro-F1 **0,7703**, neutral F1 **0,4559**; so với Naive Bayes, Macro-F1 tăng từ **0,6046** và neutral F1 từ **0,0000**. Đây là kết quả dev, chưa phải kết quả test. Thử các giá trị `C` bằng cách chạy riêng từng thí nghiệm, ví dụ:
 
 ```powershell
 python -m sentiment_analysis.cli --task train-svm --c 0.1
@@ -106,30 +102,30 @@ Logistic Regression học điểm tuyến tính cho từng lớp rồi dùng sof
 Chạy baseline trên cùng TF-IDF train/dev với NB và SVM:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --task train-logistic-regression
 ```
 
-Model lưu ở `models/logistic_regression_tfidf.joblib`, báo cáo dev ở `reports/logistic_regression_dev.md`. Kết quả hiện tại: Accuracy **0,8907**, Macro-F1 **0,7573**, neutral recall **0,5616**, neutral F1 **0,4339**. LR có neutral recall cao hơn SVM baseline nhưng Macro-F1 và neutral F1 thấp hơn; đây là kết quả dev, chưa phải đánh giá cuối.
+Model lưu ở `data/models/logistic_regression_tfidf.joblib`, báo cáo dev ở `app/ml/reports/logistic_regression_dev.md`. Kết quả hiện tại: Accuracy **0,8907**, Macro-F1 **0,7573**, neutral recall **0,5616**, neutral F1 **0,4339**. LR có neutral recall cao hơn SVM baseline nhưng Macro-F1 và neutral F1 thấp hơn; đây là kết quả dev, chưa phải đánh giá cuối.
 
-Tuning `C` và class weight trên dev cho thấy cấu hình LR `C=10`, balanced đạt Macro-F1 0,7647. So sánh preprocessing cho thấy TF-IDF unigram + bigram từ `text_segmented` tốt hơn rõ với SVM/LR so với bỏ stop-word hoặc chỉ unigram. Kết quả tuning, preprocessing và giới hạn thí nghiệm được ghi trong [báo cáo thực nghiệm model và preprocessing](reports/model_preprocessing_experiments.md); lý thuyết và workflow LR nằm trong [tài liệu Logistic Regression](docs/logistic_regression.md). Test vẫn chưa được dùng.
+Tuning `C` và class weight trên dev cho thấy cấu hình LR `C=10`, balanced đạt Macro-F1 0,7647. So sánh preprocessing cho thấy TF-IDF unigram + bigram từ `text_segmented` tốt hơn rõ với SVM/LR so với bỏ stop-word hoặc chỉ unigram. Kết quả tuning, preprocessing và giới hạn thí nghiệm được ghi trong [báo cáo thực nghiệm model và preprocessing](app/ml/reports/model_preprocessing_experiments.md); lý thuyết và workflow LR nằm trong [tài liệu Logistic Regression](docs/logistic_regression.md). Test vẫn chưa được dùng.
 
 Tạo biểu đồ so sánh F1 từng lớp, Macro-F1, Accuracy và confusion matrix chuẩn hóa theo hàng:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --task compare-models
 ```
 
-Ảnh được lưu tại `reports/figures/model_comparison_dev.png` và `reports/figures/confusion_matrices_dev.png`. Lệnh dùng ba model candidate và dev artifacts; test không được tải.
+Ảnh được lưu tại `app/ml/reports/figures/model_comparison_dev.png` và `app/ml/reports/figures/confusion_matrices_dev.png`. Lệnh dùng ba model candidate và dev artifacts; test không được tải.
 
 ### Tuần 8: Error Analysis
 
 Phân tích dự đoán sai trên dev cho ba model candidate, gồm confusion matrix, lỗi theo topic và ví dụ theo các hướng nhầm lẫn phổ biến. Chạy báo cáo cho SVM candidate:
 
 ```powershell
-$env:PYTHONPATH="src"
-python -m sentiment_analysis.cli --task analyze-errors --model-path models/experiments/linear_svm_c_1_balanced.joblib --model-report reports/error_analysis_svm_dev.md
+$env:PYTHONPATH="app/ml/src"
+python -m sentiment_analysis.cli --task analyze-errors --model-path data/models/experiments/linear_svm_c_1_balanced.joblib --model-report app/ml/reports/error_analysis_svm_dev.md
 ```
 
 Lệnh ghi Markdown report và CSV tất cả lỗi dev để nhóm gán nguyên nhân thủ công. Không tự động xem ví dụ là nguyên nhân; cần đọc câu và topic, gán codebook nhất quán, rồi chỉ đề xuất thay đổi nếu nguyên nhân lặp lại. Chi tiết cách đọc metric, phân loại nguyên nhân và ranh giới với test nằm trong [hướng dẫn Error Analysis](docs/error_analysis.md). Test vẫn chưa được dùng.
@@ -140,7 +136,58 @@ Lệnh ghi Markdown report và CSV tất cả lỗi dev để nhóm gán nguyên
 python -m pytest -q
 ```
 
-Nếu gặp lỗi không tìm thấy module `sentiment_analysis`, hãy đặt `$env:PYTHONPATH="src"` trong terminal hiện tại trước khi chạy lệnh CLI.
+Nếu gặp lỗi không tìm thấy module `sentiment_analysis`, hãy đặt `$env:PYTHONPATH="app/ml/src"` trong terminal hiện tại trước khi chạy lệnh CLI.
+
+## Web app: Frontend, Backend, SQL Server
+
+### Frontend và Backend
+
+- **Frontend sinh viên:** `app/fe/index.html`, `app/fe/app.js`, `app/fe/styles.css` — đăng ký/đăng nhập, tìm/lọc khóa học, xem video bài giảng, ghi danh, theo dõi tiến độ, đánh giá và quản lý đánh giá cá nhân.
+- **Frontend quản trị:** `app/fe/admin.html`, `app/fe/admin.js` — dashboard cảm xúc, lọc/ẩn/xóa phản hồi, quản lý danh mục/khóa học/bài giảng và phân quyền tài khoản.
+- **Backend:** `app/be/webapp.py` — FastAPI REST API, xác thực bearer token, phân quyền, xử lý tiến độ/đánh giá và gọi mô hình cảm xúc.
+- **Database:** `app/be/web_models.py`; script SQL Server tại `data/sql/01_schema.sql`.
+
+### Cài đặt lần đầu trên SQL Server Express
+
+1. Cài Microsoft ODBC Driver 18 for SQL Server và dependencies Python:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   ```
+
+2. Trong SSMS, kết nối instance `BUIGIABAO\SQLEXPRESS`, mở và chạy toàn bộ `data/sql/01_schema.sql`. Script tạo database `ElearningSentiment`, các bảng/index và các danh mục ban đầu.
+   Sau đó chạy `data/sql/02_seed_sample_data.sql` để thêm dữ liệu demo cho tài khoản, khóa học, bài giảng, ghi danh, tiến độ, đánh giá và đặt lại mật khẩu. Tài khoản demo: `admin@demo.example.com` hoặc `student1@demo.example.com`; mật khẩu `Demo1234!`.
+3. Sao chép `.env.example` thành `.env`. File mẫu đã cấu hình Windows Authentication cho instance trong ảnh. Nếu dùng server khác, sửa `DATABASE_URL`; nếu dùng môi trường thật, đặt `APP_SECRET_KEY` thành một giá trị bí mật ngẫu nhiên.
+4. Tạo artifacts mô hình (nếu chưa có):
+
+   ```powershell
+   $env:PYTHONPATH="app/ml/src"
+   .\.venv\Scripts\python.exe -m sentiment_analysis.cli
+   .\.venv\Scripts\python.exe -m sentiment_analysis.cli --task train-svm
+   ```
+
+5. Chạy API và web:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m uvicorn be.webapp:app --app-dir app --reload
+   ```
+
+   Mở `http://127.0.0.1:8000` (sinh viên), `http://127.0.0.1:8000/admin` (quản trị) hoặc `http://127.0.0.1:8000/docs` (Swagger API).
+
+### Tài khoản mẫu
+
+Chạy `data/sql/02_seed_sample_data.sql` để tạo các tài khoản và dữ liệu mẫu.
+
+- Quản trị viên: `admin@demo.example.com`
+- Sinh viên 1: `student1@demo.example.com`
+- Sinh viên 2: `student2@demo.example.com`
+- Mật khẩu cho cả ba tài khoản: `Demo1234!`
+
+CSDL lưu mật khẩu dưới dạng hash; `Demo1234!` là mật khẩu gốc dùng để tạo hash. Đăng nhập bằng tài khoản quản trị để mở `/admin`. Hai tài khoản sinh viên có thể dùng để xem khóa học, tiến độ học và đánh giá mẫu.
+
+Quên mật khẩu dùng SMTP nếu cấu hình các biến `SMTP_*` trong `.env`. Với `APP_ENV=development` và SMTP chưa cấu hình, API trả mã đặt lại dùng cho demo cục bộ. Không dùng chế độ này khi triển khai thật.
+
+Chi tiết sơ đồ kiến trúc, ERD, luồng nghiệp vụ và danh sách API nằm trong [thiết kế hệ thống web](docs/web_system_design.md). Model/vectorizer được sinh trong `data/models/` và `data/processed/vectorized/`; các artifacts này bị loại khỏi Git, vì vậy cần tạo lại trước khi chạy web trên máy mới.
 
 ## Phân chia gợi ý cho nhóm hai người
 

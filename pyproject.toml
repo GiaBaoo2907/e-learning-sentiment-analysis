@@ -9,8 +9,8 @@ description = "Sentiment analysis for e-learning feedback"
 requires-python = ">=3.10"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["app/ml/src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["app/ml/src"]
 testpaths = ["tests"]

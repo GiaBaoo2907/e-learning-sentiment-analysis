@@ -16,15 +16,15 @@ Error Analysis tìm ra các nhóm lỗi lặp lại và đặc điểm dữ li�
 Chạy từng model candidate đã tuning trên cùng dev artifacts:
 
 ```powershell
-$env:PYTHONPATH="src"
-python -m sentiment_analysis.cli --task analyze-errors --model-path models/experiments/linear_svm_c_1_balanced.joblib --model-report reports/error_analysis_svm_dev.md
-python -m sentiment_analysis.cli --task analyze-errors --model-path models/experiments/logistic_regression_c_10_balanced.joblib --model-report reports/error_analysis_logistic_regression_dev.md
-python -m sentiment_analysis.cli --task analyze-errors --model-path models/experiments/naive_bayes_alpha_0_1.joblib --model-report reports/error_analysis_naive_bayes_dev.md
+$env:PYTHONPATH="app/ml/src"
+python -m sentiment_analysis.cli --task analyze-errors --model-path data/models/experiments/linear_svm_c_1_balanced.joblib --model-report app/ml/reports/error_analysis_svm_dev.md
+python -m sentiment_analysis.cli --task analyze-errors --model-path data/models/experiments/logistic_regression_c_10_balanced.joblib --model-report app/ml/reports/error_analysis_logistic_regression_dev.md
+python -m sentiment_analysis.cli --task analyze-errors --model-path data/models/experiments/naive_bayes_alpha_0_1.joblib --model-report app/ml/reports/error_analysis_naive_bayes_dev.md
 ```
 
 Lệnh xác nhận số dòng processed dev, `y_dev` và `X_dev` bằng nhau; kiểm tra nhãn CSV khớp `y_dev`; kiểm tra số feature khớp model. Nếu alignment sai, dừng bằng lỗi thay vì gán nhầm câu. Chỉ nạp model, processed CSV, `X_dev` và `y_dev`; test không được tải hoặc đánh giá.
 
-Mỗi report Markdown đi kèm CSV cùng basename, ví dụ `reports/error_analysis_svm_dev_samples.csv`. CSV chứa tất cả dự đoán sai trên dev, nhãn thật/dự đoán, topic, hướng nhầm lẫn, nội dung gốc và cột trống `error_cause` để nhóm gán nhãn nguyên nhân.
+Mỗi report Markdown đi kèm CSV cùng basename, ví dụ `app/ml/reports/error_analysis_svm_dev_samples.csv`. CSV chứa tất cả dự đoán sai trên dev, nhãn thật/dự đoán, topic, hướng nhầm lẫn, nội dung gốc và cột trống `error_cause` để nhóm gán nhãn nguyên nhân.
 
 ## Quy trình gán nguyên nhân
 

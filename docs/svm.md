@@ -28,14 +28,14 @@ Khác với Naive Bayes, LinearSVC không tạo xác suất lớp trực tiếp.
 Tạo TF-IDF artifacts nếu chưa có:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli
 ```
 
 Chạy baseline và các cấu hình `C`:
 
 ```powershell
-$env:PYTHONPATH="src"
+$env:PYTHONPATH="app/ml/src"
 python -m sentiment_analysis.cli --task train-svm
 python -m sentiment_analysis.cli --task train-svm --c 0.1
 python -m sentiment_analysis.cli --task train-svm --c 10
@@ -51,4 +51,4 @@ python -m sentiment_analysis.cli --task train-svm --c 10
 | LinearSVC | 1.0 | balanced | 0.9078 | 0.7703 | 0.4559 | Macro-F1 và neutral F1 cao nhất; baseline được giữ |
 | LinearSVC | 10 | balanced | 0.8895 | 0.7375 | 0.3885 | Hiệu quả dev giảm với C lớn |
 
-Các kết quả trên dùng cùng train/dev TF-IDF artifacts; test không được tải hoặc đánh giá. Chọn `C=1.0` làm cấu hình baseline tạm thời vì câu hỏi nghiên cứu ưu tiên Macro-F1 và nhận diện lớp neutral hơn accuracy đơn lẻ. Báo cáo chi tiết baseline nằm ở `reports/svm_dev.md`.
+Các kết quả trên dùng cùng train/dev TF-IDF artifacts; test không được tải hoặc đánh giá. Chọn `C=1.0` làm cấu hình baseline tạm thời vì câu hỏi nghiên cứu ưu tiên Macro-F1 và nhận diện lớp neutral hơn accuracy đơn lẻ. Báo cáo chi tiết baseline nằm ở `app/ml/reports/svm_dev.md`.
